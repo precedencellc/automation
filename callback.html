@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Authorization received — Sommerville Bookkeeping Automation</title>
+<style>
+  body{max-width:720px;margin:40px auto;padding:0 20px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.6;color:#1a1a1a}
+  h1{font-size:1.5rem}
+  .ok{color:#137333}
+  .row{margin:14px 0}
+  label{display:block;font-weight:600;font-size:.85rem;color:#444;margin-bottom:4px}
+  .val{display:flex;gap:8px}
+  input{flex:1;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem;padding:8px;border:1px solid #ccc;border-radius:6px;background:#f7f7f7}
+  button{padding:8px 12px;border:1px solid #0a58ca;background:#0a58ca;color:#fff;border-radius:6px;cursor:pointer;font-size:.85rem}
+  button:active{transform:translateY(1px)}
+  .hint{background:#eef4ff;border:1px solid #cfe0ff;border-radius:8px;padding:12px 14px;font-size:.92rem}
+  .err{background:#fdecea;border:1px solid #f5c2c0;border-radius:8px;padding:12px 14px}
+  code{background:#f0f0f0;padding:1px 5px;border-radius:4px}
+  footer{margin-top:2.5rem;color:#666;font-size:.85rem;border-top:1px solid #ddd;padding-top:1rem}
+</style>
+</head>
+<body>
+<h1 id="head">Authorization received</h1>
+<div id="content"></div>
+<footer>Sommerville Bookkeeping Automation — private application operated by Carl Sommerville.</footer>
+
+<script>
+(function () {
+  var q = new URLSearchParams(window.location.search);
+  var code = q.get("code") || "";
+  var state = q.get("state") || "";
+  var realm = q.get("realmId") || "";
+  var err = q.get("error");
+  var head = document.getElementById("head");
+  var el = document.getElementById("content");
+
+  function field(labelText, value) {
+    var row = document.createElement("div"); row.className = "row";
+    var lab = document.createElement("label"); lab.textContent = labelText; row.appendChild(lab);
+    var wrap = document.createElement("div"); wrap.className = "val";
+    var inp = document.createElement("input"); inp.readOnly = true; inp.value = value;
+    var btn = document.createElement("button"); btn.textContent = "Copy";
+    btn.onclick = function () {
+      inp.select();
+      try { navigator.clipboard.writeText(value); } catch (e) { document.execCommand("copy"); }
+      btn.textContent = "Copied"; setTimeout(function(){ btn.textContent = "Copy"; }, 1200);
+    };
+    wrap.appendChild(inp); wrap.appendChild(btn); row.appendChild(wrap);
+    return row;
+  }
+
+  if (err) {
+    head.textContent = "Authorization was not completed";
+    head.className = "";
+    var d = document.createElement("div"); d.className = "err";
+    d.innerHTML = "Intuit returned an error: <code>" + err + "</code>. Close this tab and run the authorization command again.";
+    el.appendChild(d);
+    return;
+  }
+
+  head.className = "ok";
+  var hint = document.createElement("div"); hint.className = "hint";
+  hint.innerHTML = "Almost done. The easiest step: copy the <b>entire address-bar URL</b> of this page and paste it back into the "
+    + "<code>qbo_authorize.py</code> prompt in your terminal. (Or copy just the fields below.)";
+  el.appendChild(hint);
+
+  if (code)  el.appendChild(field("Full redirect URL (recommended — paste this)", window.location.href));
+  if (code)  el.appendChild(field("Authorization code", code));
+  if (realm) el.appendChild(field("Company ID (realmId)", realm));
+  if (state) el.appendChild(field("State", state));
+
+  if (!code) {
+    var d2 = document.createElement("div"); d2.className = "err";
+    d2.textContent = "No authorization code was found in this URL. Close this tab and run the authorization command again.";
+    el.appendChild(d2);
+  }
+})();
+</script>
+</body>
+</html>
